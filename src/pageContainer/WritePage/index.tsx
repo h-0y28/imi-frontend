@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import * as S from './write.css';
 
 const MAX_CONTENT_LENGTH = 2400;
+const MAX_MAJOR_LENGTH = 50;
 
 const WritePage = () => {
   const router = useRouter();
@@ -142,12 +143,23 @@ const WritePage = () => {
       <p className={S.Title}>자기소개서 작성</p>
       <form className={S.Form} onSubmit={handleSubmit}>
         <div className={S.Section}>
-          <p className={S.SectionTitle}>전공</p>
+          <div className={S.SectionTitleBox}>
+            <p className={S.SectionTitle}>전공</p>
+            <p className={S.SectionSubtitle}>
+              {major.length}/{MAX_MAJOR_LENGTH}
+            </p>
+          </div>
+
           <input
             value={major}
             onChange={(e) => {
-              setMajor(e.target.value);
-              setHasUnsavedChanges(true);
+              const newMajor = e.target.value;
+              if (newMajor.length <= MAX_MAJOR_LENGTH) {
+                setMajor(newMajor);
+                setHasUnsavedChanges(true);
+              } else {
+                toast.warn('전공은 50자를 초과할 수 없습니다.');
+              }
             }}
             placeholder="전공을 작성해주세요. ex) 프론트엔드"
             className={S.InputField}
