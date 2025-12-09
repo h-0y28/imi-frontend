@@ -7,7 +7,7 @@ import { useMyProfile } from '@/hooks';
 import { put } from '@/libs';
 
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import * as S from './write.css';
@@ -23,6 +23,8 @@ const WritePage = () => {
   const [content, setContent] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
   const toggleClub = (club: string) => {
     setSelectedClubs((prev) =>
       prev.includes(club) ? prev.filter((c) => c !== club) : [...prev, club]
@@ -30,8 +32,7 @@ const WritePage = () => {
     setHasUnsavedChanges(true);
   };
 
-  const handleResizeHeight = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
+  const handleResizeHeight = (target: HTMLTextAreaElement) => {
     target.style.height = 'auto';
     target.style.height = `${target.scrollHeight + 1.8}px`;
   };
@@ -59,6 +60,12 @@ const WritePage = () => {
       setHasUnsavedChanges(false);
     }
   }, [myProfile]);
+
+  useEffect(() => {
+    if (contentRef.current && content) {
+      handleResizeHeight(contentRef.current);
+    }
+  }, [content]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -188,16 +195,17 @@ const WritePage = () => {
             </p>
           </div>
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => {
               const newContent = e.target.value;
               if (newContent.length <= MAX_CONTENT_LENGTH) {
                 setContent(newContent);
                 setHasUnsavedChanges(true);
+                handleResizeHeight(e.target);
               } else {
                 toast.warn('2400자를 초과했습니다.');
               }
-              handleResizeHeight(e);
             }}
             placeholder="나의 장단점, 각오, 현재하고 있는 공부 등을 자유롭게 작성해보세요."
             className={S.TextareaField}
