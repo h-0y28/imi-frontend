@@ -85,7 +85,7 @@ export default function ProfileDetailPage() {
 
         <div className={T.TextContainer}>
           <p className={T.Tag}>관심 분야</p>
-          <p className={T.Content}>{profile.major}</p>
+          <p className={S.Content}>{profile.major}</p>
         </div>
 
         <div className={T.TextContainer}>
