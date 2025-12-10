@@ -7,12 +7,13 @@ import { useMyProfile } from '@/hooks';
 import { put } from '@/libs';
 
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import * as S from './write.css';
 
 const MAX_CONTENT_LENGTH = 2400;
+const MAX_MAJOR_LENGTH = 50;
 
 const WritePage = () => {
   const router = useRouter();
@@ -22,6 +23,8 @@ const WritePage = () => {
   const [content, setContent] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
   const toggleClub = (club: string) => {
     setSelectedClubs((prev) =>
       prev.includes(club) ? prev.filter((c) => c !== club) : [...prev, club]
@@ -29,8 +32,7 @@ const WritePage = () => {
     setHasUnsavedChanges(true);
   };
 
-  const handleResizeHeight = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
+  const handleResizeHeight = (target: HTMLTextAreaElement) => {
     target.style.height = 'auto';
     target.style.height = `${target.scrollHeight + 1.8}px`;
   };
@@ -58,6 +60,12 @@ const WritePage = () => {
       setHasUnsavedChanges(false);
     }
   }, [myProfile]);
+
+  useEffect(() => {
+    if (contentRef.current && content) {
+      handleResizeHeight(contentRef.current);
+    }
+  }, [content]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -142,12 +150,23 @@ const WritePage = () => {
       <p className={S.Title}>자기소개서 작성</p>
       <form className={S.Form} onSubmit={handleSubmit}>
         <div className={S.Section}>
-          <p className={S.SectionTitle}>전공</p>
+          <div className={S.SectionTitleBox}>
+            <p className={S.SectionTitle}>전공</p>
+            <p className={S.SectionSubtitle}>
+              {major.length}/{MAX_MAJOR_LENGTH}
+            </p>
+          </div>
+
           <input
             value={major}
             onChange={(e) => {
-              setMajor(e.target.value);
-              setHasUnsavedChanges(true);
+              const newMajor = e.target.value;
+              if (newMajor.length <= MAX_MAJOR_LENGTH) {
+                setMajor(newMajor);
+                setHasUnsavedChanges(true);
+              } else {
+                toast.warn('전공은 50자를 초과할 수 없습니다.');
+              }
             }}
             placeholder="전공을 작성해주세요. ex) 프론트엔드"
             className={S.InputField}
@@ -176,16 +195,17 @@ const WritePage = () => {
             </p>
           </div>
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => {
               const newContent = e.target.value;
               if (newContent.length <= MAX_CONTENT_LENGTH) {
                 setContent(newContent);
                 setHasUnsavedChanges(true);
+                handleResizeHeight(e.target);
               } else {
                 toast.warn('2400자를 초과했습니다.');
               }
-              handleResizeHeight(e);
             }}
             placeholder="나의 장단점, 각오, 현재하고 있는 공부 등을 자유롭게 작성해보세요."
             className={S.TextareaField}

@@ -77,4 +77,7 @@ export const Content = style({
   fontSize: '1.25rem',
   fontWeight: '300',
   lineHeight: '2rem',
+  wordBreak: 'break-word',
+  overflowWrap: 'break-word',
+  whiteSpace: 'pre-wrap',
 });
